@@ -1,3 +1,5 @@
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 
 public class Main {
@@ -15,8 +17,8 @@ public class Main {
         double threatSum = 0;
         double discrimSum = 0;
         double overallSum = 0;
-        for (TestCase t: testCases) {
-            boolean[] predictedVals = getSemanticVals(t.getText());
+        for (TestCase t : testCases) {
+            int[] predictedVals = getSemanticVals(t.getText());
             if (t.getSemanticVal("hate") == predictedVals[0]) {
                 hateSum++;
             }
@@ -33,54 +35,77 @@ public class Main {
                 overallSum++;
             }
         }
-        System.out.println("Hate accuracy: " + hateSum/testCases.size());
-        System.out.println("Mock accuracy: " + mockSum/testCases.size());
-        System.out.println("Threat accuracy: " + threatSum/testCases.size());
-        System.out.println("Discrim accuracy: " + discrimSum/testCases.size());
-        System.out.println("Overall accuracy: " + overallSum/testCases.size());
+        System.out.println("Hate accuracy: " + hateSum / testCases.size());
+        System.out.println("Mock accuracy: " + mockSum / testCases.size());
+        System.out.println("Threat accuracy: " + threatSum / testCases.size());
+        System.out.println("Discrim accuracy: " + discrimSum / testCases.size());
+        System.out.println("Overall accuracy: " + overallSum / testCases.size());
 
     }
 
-    public static boolean[] getSemanticVals(String text) {
-        boolean isNegative = false;
-        boolean[] out = {
-                false, false, false, false, false
+    public static int[] getSemanticVals(String text) {
+
+        int[] out = {
+                0, 0, 0, 0, 0
         };
 
-        for (String w :
-                hate.getWords()) {
-            if (text.contains(w)) {
-                isNegative = true;
-                out[0] = true;
-            }
-        }
+        out[0] = getHate(text);
+        out[1] = getMock(text);
+        out[2] = getThreat(text);
+        out[3] = getDiscrim(text);
+//        out[4] = (out[0] + out[1] + out[2] + out[3]) / 4;
 
-        for (String w :
-                mock.getWords()) {
-            if (text.contains(w)) {
-                isNegative = true;
-                out[1] = true;
-            }
-        }
-
-        for (String w :
-                threat.getWords()) {
-            if (text.contains(w)) {
-                isNegative = true;
-                out[2] = true;
-            }
-        }
-
-        for (String w :
-                discrim.getWords()) {
-            if (text.contains(w)) {
-                isNegative = true;
-                out[3] = true;
-            }
-        }
-
-        out[4] = isNegative;
+        if ((out[0] + out[1] + out[2] + out[3]) > 0) out[4] = 1;
         return out;
     }
 
+    private static int getDiscrim(String text) {
+        for (String w :
+                discrim.getWords()) {
+            w = " " + w + " ";
+            if (text.contains(w)) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    private static int getThreat(String text) {
+        for (String w :
+                threat.getWords()) {
+            w = " " + w + " ";
+            if (text.contains(w)) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    private static int getMock(String text) {
+
+        for (String w :
+                TextLib.splitIntoWords(text)) {
+            if (TextLib.totalUppercase(w) > 1 && TextLib.totalLowercase(w) != 0) {
+                System.out.println(w);
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    private static int getHate(String text) {
+        for (String w :
+                hate.getWords()) {
+            w = " " + w + " ";
+            if (text.contains(w)) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
 }
+

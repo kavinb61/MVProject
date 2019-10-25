@@ -14,17 +14,18 @@ public class TextLib {
             scanner = new Scanner(new FileInputStream(filename), "UTF-8");
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine().trim();
-                String text = line.substring(0, line.indexOf(","));
-                boolean hate, mock, threat, discrim, overall;
+                int firstComma = getIndexOfNthComma(line, 1);
+                String text = line.substring(0, firstComma);
+                int hate, mock, threat, discrim, overall;
 
-                hate = toBool(processLine(line, 1));
-                mock = toBool(processLine(line, 2));
-                threat = toBool(processLine(line, 3));
-                discrim = toBool(processLine(line, 4));
-                overall = toBool(processLine(line, 5));
+                hate = processLine(line, 1);
+                mock = processLine(line, 2);
+                threat = processLine(line, 3);
+                discrim = processLine(line, 4);
+                overall = processLine(line, 5);
 
 
-                TestCase t = new TestCase(text, new boolean[] {hate, mock, threat, discrim, overall});
+                TestCase t = new TestCase(text, new int[] {hate, mock, threat, discrim, overall});
                 out.add(t);
             }
 
@@ -37,19 +38,30 @@ public class TextLib {
         return out;
     }
 
-    private static boolean toBool(int val) {
-        return val == 1;
+    private static int getIndexOfNthComma(String line, int n) {
+        int counter = 0;
+        for (int i = 0; i < line.length(); i++) {
+            if (line.substring(i, i+1).equals(",")) {
+                counter++;
+                if (counter == n) {
+                    return i;
+                }
+            }
+            if (line.substring(i, i+1).equals("\"")) {
+                i = line.indexOf("\"", i+1);
+            }
+        }
+        return -1;
     }
 
     private static int processLine(String line, int loc) {
-        int startIndex = 0;
-        int endIndex = 0;
+        int startIndex = getIndexOfNthComma(line, 1) - 1;
 
         for (int i = 0; i < loc; i++) {
             startIndex = line.indexOf(",", startIndex + 1);
         }
 
-        endIndex = line.indexOf(",", startIndex + 1);
+        int endIndex = line.indexOf(",", startIndex + 1);
         if (endIndex == -1) endIndex = line.length();
 
         String num = line.substring(startIndex + 1, endIndex).trim();
@@ -120,5 +132,43 @@ public class TextLib {
             output.add(sentence);
 
         return output;
+    }
+
+    public static ArrayList<String> splitIntoWords(String text) {
+        ArrayList<String> sentences = splitIntoSentences(text);
+        ArrayList<String> out = new ArrayList<>();
+        for (int i = 0; i < sentences.size(); i++) {
+            String[] words = sentences.get(i).split(" ");
+            for (String w :
+                    words) {
+                out.add(w);
+            }
+        }
+
+        return out;
+    }
+
+    public static int totalUppercase(String word) {
+        int count = 0;
+        for (int i = 0; i < word.length(); i++) {
+            String letter = word.substring(i, i + 1);
+            if (letter.toUpperCase().equals(letter) && isLetter(letter)) count++;
+        }
+
+        return count;
+    }
+
+    public static int totalLowercase(String word) {
+        int count = 0;
+        for (int i = 0; i < word.length(); i++) {
+            String letter = word.substring(i, i + 1);
+            if (letter.toLowerCase().equals(letter) && isLetter(letter)) count++;
+        }
+
+        return count;
+    }
+
+    private static boolean isLetter(String letter) {
+        return "qwertyuiopasdfghjklzxcvbnm".contains(letter.toLowerCase());
     }
 }
