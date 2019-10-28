@@ -1,16 +1,16 @@
 import org.w3c.dom.Text;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Main {
     static WordBin hate = new WordBin("wordbins/hate.txt");
-    static WordBin mock = new WordBin("wordbins/hate.txt");
-    static WordBin threat = new WordBin("wordbins/hate.txt");
-    static WordBin discrim = new WordBin("wordbins/hate.txt");
+    static WordBin threatVerbs = new WordBin("wordbins/threatVerbs.txt");
+    static WordBin races = new WordBin("wordbins/race.txt");
 
     public static void main(String[] args) {
 
-        ArrayList<TestCase> testCases = TextLib.readTestCases("data/Data Set - Sheet1.csv");
+        ArrayList<TestCase> testCases = TextLib.readTestCases("data/Test Suite - Sheet1.csv");
 
         double hateSum = 0;
         double mockSum = 0;
@@ -18,6 +18,7 @@ public class Main {
         double discrimSum = 0;
         double overallSum = 0;
         for (TestCase t : testCases) {
+            System.out.println(t.getText());
             int[] predictedVals = getSemanticVals(t.getText());
             if (t.getSemanticVal("hate") == predictedVals[0]) {
                 hateSum++;
@@ -60,10 +61,12 @@ public class Main {
     }
 
     private static int getDiscrim(String text) {
+        text = text.toLowerCase();
         for (String w :
-                discrim.getWords()) {
+                hate.getWords()) {
             w = " " + w + " ";
             if (text.contains(w)) {
+                System.out.println(w);
                 return 1;
             }
         }
@@ -72,21 +75,37 @@ public class Main {
     }
 
     private static int getThreat(String text) {
-        for (String w :
-                threat.getWords()) {
-            w = " " + w + " ";
-            if (text.contains(w)) {
-                return 1;
-            }
+        ArrayList<String> sentences = TextLib.splitIntoSentences(text.toLowerCase());
+        for (String sentence : sentences) {
+            if (isActiveThreat(sentence)) System.out.println(sentence);return 1;
         }
 
         return 0;
+    }
+
+    private static boolean isActiveThreat(String sentence) {
+        for (String verb : threatVerbs.getWords()) {
+            verb = " " + verb + " ";
+            verb = verb.toLowerCase();
+            if (sentence.contains(verb)) {
+                for (String slur : races.getWords()) {
+                    slur = " " + slur + " ";
+                    slur = slur.toLowerCase();
+                    if (!slur.equals("slur") && sentence.contains(slur)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static int getMock(String text) {
 
         for (String w :
                 TextLib.splitIntoWords(text)) {
+            if (!allLetters(w)) return 0;
+
             if (TextLib.totalUppercase(w) > 1 && TextLib.totalLowercase(w) != 0) {
                 System.out.println(w);
                 return 1;
@@ -96,11 +115,25 @@ public class Main {
         return 0;
     }
 
+    private static boolean allLetters(String w) {
+        for (int i = 0; i < w.length(); i++) {
+            if (!isLetter(w)) return false;
+        }
+
+        return true;
+    }
+
+    private static boolean isLetter(String w) {
+        return  "qwertyuiopasdfghjklzxcvbnm".contains(w.toLowerCase());
+    }
+
     private static int getHate(String text) {
+        text = text.toLowerCase();
         for (String w :
                 hate.getWords()) {
             w = " " + w + " ";
             if (text.contains(w)) {
+                System.out.println(w);
                 return 1;
             }
         }

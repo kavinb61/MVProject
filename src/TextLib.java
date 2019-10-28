@@ -12,8 +12,13 @@ public class TextLib {
 
         try {
             scanner = new Scanner(new FileInputStream(filename), "UTF-8");
+            scanner.nextLine();
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine().trim();
+                while (!(line.substring(line.length()-1).equals("0") || line.substring(line.length()-1).equals("1"))) {
+                    line = line + scanner.nextLine().trim();
+                }
+
                 int firstComma = getIndexOfNthComma(line, 1);
                 String text = line.substring(0, firstComma);
                 int hate, mock, threat, discrim, overall;
